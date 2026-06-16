@@ -9,8 +9,21 @@ import { z } from 'zod';
  * and Docs/05-api-contracts.md).
  */
 
-/** Lifecycle status of an uploaded document as it moves through the pipeline. */
-export const DocumentStatusSchema = z.enum(['uploaded', 'processing', 'ready', 'failed']);
+/**
+ * Lifecycle status of an uploaded document as it moves through the pipeline.
+ *
+ * Extraction stage (Sprint 3): uploaded -> processing -> extracted | failed.
+ * `ready` is reserved for later stages (embeddings/indexing).
+ *
+ * @see Docs/03-architecture.md
+ */
+export const DocumentStatusSchema = z.enum([
+  'uploaded',
+  'processing',
+  'extracted',
+  'ready',
+  'failed',
+]);
 export type DocumentStatus = z.infer<typeof DocumentStatusSchema>;
 
 /**

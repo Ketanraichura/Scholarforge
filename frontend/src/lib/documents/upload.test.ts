@@ -1,5 +1,9 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { UploadError, createSignedUrlForDocument, uploadDocument } from './upload';
+
+/** Casts an in-memory fake to the SupabaseClient surface used by the code under test. */
+const asClient = (fake: unknown): SupabaseClient => fake as unknown as SupabaseClient;
 
 /** Minimal typed builder for a fake Supabase client used by these tests. */
 interface FakeOptions {
@@ -45,9 +49,8 @@ describe('uploadDocument', () => {
     const supabase = fakeSupabase();
     const file = makeFile('paper.pdf', 'application/pdf', 1024);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
     const result = await uploadDocument({
-      supabase: supabase as any,
+      supabase: asClient(supabase),
       userId: USER_ID,
       file,
       generateId,
@@ -75,8 +78,7 @@ describe('uploadDocument', () => {
     const file = makeFile('big.pdf', 'application/pdf', 21 * 1024 * 1024);
 
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      uploadDocument({ supabase: supabase as any, userId: USER_ID, file, generateId }),
+      uploadDocument({ supabase: asClient(supabase), userId: USER_ID, file, generateId }),
     ).rejects.toMatchObject({ reason: 'file-too-large' });
     expect(supabase._upload).not.toHaveBeenCalled();
   });
@@ -86,8 +88,7 @@ describe('uploadDocument', () => {
     const file = makeFile('fake.pdf', 'image/png', 1024);
 
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      uploadDocument({ supabase: supabase as any, userId: USER_ID, file, generateId }),
+      uploadDocument({ supabase: asClient(supabase), userId: USER_ID, file, generateId }),
     ).rejects.toMatchObject({ reason: 'invalid-mime-type' });
   });
 
@@ -96,8 +97,7 @@ describe('uploadDocument', () => {
     const file = makeFile('script.exe', 'application/pdf', 1024);
 
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      uploadDocument({ supabase: supabase as any, userId: USER_ID, file, generateId }),
+      uploadDocument({ supabase: asClient(supabase), userId: USER_ID, file, generateId }),
     ).rejects.toMatchObject({ reason: 'invalid-extension' });
   });
 
@@ -106,8 +106,7 @@ describe('uploadDocument', () => {
     const file = makeFile('paper.pdf', 'application/pdf', 1024);
 
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      uploadDocument({ supabase: supabase as any, userId: USER_ID, file, generateId }),
+      uploadDocument({ supabase: asClient(supabase), userId: USER_ID, file, generateId }),
     ).rejects.toMatchObject({ reason: 'storage-failed' });
     expect(supabase._insert).not.toHaveBeenCalled();
   });
@@ -118,8 +117,7 @@ describe('uploadDocument', () => {
     const file = makeFile('paper.pdf', 'application/pdf', 1024);
 
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      uploadDocument({ supabase: supabase as any, userId: USER_ID, file, generateId }),
+      uploadDocument({ supabase: asClient(supabase), userId: USER_ID, file, generateId }),
     ).rejects.toBeInstanceOf(UploadError);
   });
 
@@ -129,8 +127,7 @@ describe('uploadDocument', () => {
     const file = makeFile('paper.pdf', 'application/pdf', 1024);
 
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      uploadDocument({ supabase: supabase as any, userId: USER_ID, file, generateId }),
+      uploadDocument({ supabase: asClient(supabase), userId: USER_ID, file, generateId }),
     ).rejects.toMatchObject({ reason: 'persist-failed' });
     expect(removeSpy).toHaveBeenCalledWith([`${USER_ID}/${DOC_ID}.pdf`]);
   });
@@ -175,8 +172,7 @@ describe('createSignedUrlForDocument', () => {
     });
 
     const url = await createSignedUrlForDocument({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      supabase: supabase as any,
+      supabase: asClient(supabase),
       userId: USER_ID,
       documentId: DOC_ID,
     });
@@ -191,8 +187,7 @@ describe('createSignedUrlForDocument', () => {
     });
 
     const url = await createSignedUrlForDocument({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      supabase: supabase as any,
+      supabase: asClient(supabase),
       userId: USER_ID,
       documentId: DOC_ID,
     });
@@ -205,8 +200,7 @@ describe('createSignedUrlForDocument', () => {
     const supabase = signingClient({ document: null, selectError: { message: 'not found' } });
 
     const url = await createSignedUrlForDocument({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake client shape for test
-      supabase: supabase as any,
+      supabase: asClient(supabase),
       userId: USER_ID,
       documentId: DOC_ID,
     });

@@ -38,7 +38,10 @@ describe('ChatRequestSchema', () => {
 describe('DocumentStatusSchema', () => {
   it('accepts known statuses', () => {
     expect(DocumentStatusSchema.parse('uploaded')).toBe('uploaded');
+    expect(DocumentStatusSchema.parse('processing')).toBe('processing');
+    expect(DocumentStatusSchema.parse('extracted')).toBe('extracted');
     expect(DocumentStatusSchema.parse('ready')).toBe('ready');
+    expect(DocumentStatusSchema.parse('failed')).toBe('failed');
   });
 
   it('rejects unknown statuses', () => {

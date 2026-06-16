@@ -1,5 +1,6 @@
 import { UploadResponseSchema, UPLOAD_ERROR_MESSAGES } from '@scholarforge/shared';
 import { NextResponse, type NextRequest } from 'next/server';
+import { defaultDocumentQueue } from '@/lib/documents/queue';
 import { UploadError, uploadDocument } from '@/lib/documents/upload';
 import { createClient } from '@/lib/supabase/server';
 
@@ -36,6 +37,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     const { documentId } = await uploadDocument({ supabase, userId: user.id, file });
+
+    // Enqueue extraction asynchronously; the upload response must not wait for
+    // (or fail because of) downstream processing.
+    await defaultDocumentQueue
+      .enqueue({ kind: 'process-document', documentId })
+      .catch((queueError: unknown) => {
+        console.error(`[upload] failed to enqueue processing for ${documentId}`, queueError);
+      });
+
     const body = UploadResponseSchema.parse({ documentId });
     return NextResponse.json(body, { status: 201 });
   } catch (error) {
