@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { LogoutButton } from '@/components/auth/logout-button';
+import { UploadForm } from '@/components/documents/upload-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
 
@@ -31,11 +32,11 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-neutral-500">
-            Your research workspace is ready. Document upload and AI features arrive in upcoming
-            sprints.
+            Your research workspace is ready. Upload a PDF below to get started.
           </p>
         </CardContent>
       </Card>
+      <UploadForm />
     </main>
   );
 }

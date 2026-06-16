@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { ChatRequestSchema, DocumentStatusSchema, UploadResponseSchema } from './index.js';
+import {
+  ChatRequestSchema,
+  DocumentStatusSchema,
+  MAX_UPLOAD_BYTES,
+  UploadResponseSchema,
+  validateUpload,
+} from './index.js';
 
 const UUID = '00000000-0000-4000-8000-000000000000';
 
@@ -37,5 +43,41 @@ describe('DocumentStatusSchema', () => {
 
   it('rejects unknown statuses', () => {
     expect(() => DocumentStatusSchema.parse('archived')).toThrow();
+  });
+});
+
+describe('validateUpload', () => {
+  const valid = {
+    filename: 'paper.pdf',
+    mimeType: 'application/pdf',
+    sizeBytes: 1024,
+  };
+
+  it('accepts a valid PDF under the size limit', () => {
+    expect(validateUpload(valid)).toBeNull();
+  });
+
+  it('accepts an uppercase extension', () => {
+    expect(validateUpload({ ...valid, filename: 'PAPER.PDF' })).toBeNull();
+  });
+
+  it('rejects an empty file', () => {
+    expect(validateUpload({ ...valid, sizeBytes: 0 })).toBe('empty-file');
+  });
+
+  it('rejects an oversized file', () => {
+    expect(validateUpload({ ...valid, sizeBytes: MAX_UPLOAD_BYTES + 1 })).toBe('file-too-large');
+  });
+
+  it('accepts a file exactly at the size limit', () => {
+    expect(validateUpload({ ...valid, sizeBytes: MAX_UPLOAD_BYTES })).toBeNull();
+  });
+
+  it('rejects a non-PDF mime type', () => {
+    expect(validateUpload({ ...valid, mimeType: 'image/png' })).toBe('invalid-mime-type');
+  });
+
+  it('rejects a non-pdf extension even with a pdf mime type', () => {
+    expect(validateUpload({ ...valid, filename: 'paper.exe' })).toBe('invalid-extension');
   });
 });
