@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
+*.tsbuildinfo
+next-env.d.ts
+
+# Source-of-truth documentation — do not reformat
+Docs/

@@ -1,0 +1,28 @@
+{
+  "name": "@scholarforge/workers",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Background worker scaffold for ScholarForge AI (no AI logic yet).",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@scholarforge/shared": "*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^22.19.21",
+    "eslint": "^9.39.4",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.61.1",
+    "vitest": "^3.2.6"
+  }
+}

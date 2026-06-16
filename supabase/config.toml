@@ -1,0 +1,7 @@
+# Supabase project configuration for ScholarForge AI.
+# Used by the Supabase CLI for local dev and migrations.
+# Migrations live in ./migrations and are applied with `supabase db push`.
+project_id = "scholarforge"
+
+[db]
+major_version = 15
