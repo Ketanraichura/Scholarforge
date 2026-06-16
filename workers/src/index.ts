@@ -1,13 +1,13 @@
 import { DocumentStatusSchema, type DocumentStatus } from '@scholarforge/shared';
 
 /**
- * Worker job kinds. The document-processing pipeline (PDF extraction, chunking,
- * embeddings) is intentionally NOT implemented yet — this scaffold only defines
- * the queue/handler contract so future sprints can register concrete handlers.
+ * Worker job kinds. Concrete handlers are registered by the worker entrypoint:
+ * `process-document` runs PDF text extraction (Sprint 3) and `chunk-document`
+ * splits extracted text into chunks (Sprint 4).
  *
  * @see Docs/03-architecture.md (Queue -> Workers)
  */
-export type JobKind = 'process-document';
+export type JobKind = 'process-document' | 'chunk-document';
 
 export interface Job<TPayload> {
   readonly kind: JobKind;
@@ -15,6 +15,10 @@ export interface Job<TPayload> {
 }
 
 export interface ProcessDocumentPayload {
+  readonly documentId: string;
+}
+
+export interface ChunkDocumentPayload {
   readonly documentId: string;
 }
 

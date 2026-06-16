@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm view *)",
-      "Bash(echo \"lucide-react latest: $\\(npm view lucide-react version\\)\")"
+      "Bash(echo \"lucide-react latest: $\\(npm view lucide-react version\\)\")",
+      "Bash(npm run *)",
+      "Read(//tmp/**)"
     ]
   }
 }

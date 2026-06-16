@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ChatRequestSchema,
+  ChunkMetadataSchema,
   DocumentStatusSchema,
   MAX_UPLOAD_BYTES,
   UploadResponseSchema,
@@ -40,12 +41,39 @@ describe('DocumentStatusSchema', () => {
     expect(DocumentStatusSchema.parse('uploaded')).toBe('uploaded');
     expect(DocumentStatusSchema.parse('processing')).toBe('processing');
     expect(DocumentStatusSchema.parse('extracted')).toBe('extracted');
+    expect(DocumentStatusSchema.parse('chunked')).toBe('chunked');
     expect(DocumentStatusSchema.parse('ready')).toBe('ready');
     expect(DocumentStatusSchema.parse('failed')).toBe('failed');
   });
 
   it('rejects unknown statuses', () => {
     expect(() => DocumentStatusSchema.parse('archived')).toThrow();
+  });
+});
+
+describe('ChunkMetadataSchema', () => {
+  const valid = {
+    document_id: UUID,
+    page_number: 1,
+    chunk_index: 0,
+    start_offset: 0,
+    end_offset: 500,
+  };
+
+  it('accepts valid chunk metadata', () => {
+    expect(ChunkMetadataSchema.parse(valid)).toEqual(valid);
+  });
+
+  it('rejects a non-positive page number', () => {
+    expect(() => ChunkMetadataSchema.parse({ ...valid, page_number: 0 })).toThrow();
+  });
+
+  it('rejects a negative chunk index', () => {
+    expect(() => ChunkMetadataSchema.parse({ ...valid, chunk_index: -1 })).toThrow();
+  });
+
+  it('rejects a non-uuid document_id', () => {
+    expect(() => ChunkMetadataSchema.parse({ ...valid, document_id: 'nope' })).toThrow();
   });
 });
 

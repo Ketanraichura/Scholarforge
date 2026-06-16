@@ -13,6 +13,7 @@ import { z } from 'zod';
  * Lifecycle status of an uploaded document as it moves through the pipeline.
  *
  * Extraction stage (Sprint 3): uploaded -> processing -> extracted | failed.
+ * Chunking stage (Sprint 4):   extracted -> chunked | failed.
  * `ready` is reserved for later stages (embeddings/indexing).
  *
  * @see Docs/03-architecture.md
@@ -21,6 +22,7 @@ export const DocumentStatusSchema = z.enum([
   'uploaded',
   'processing',
   'extracted',
+  'chunked',
   'ready',
   'failed',
 ]);
@@ -85,6 +87,28 @@ export const UPLOAD_ERROR_MESSAGES: Record<UploadValidationError, string> = {
   'invalid-mime-type': 'Only PDF files are allowed.',
   'invalid-extension': 'File must have a .pdf extension.',
 };
+
+/**
+ * Text-chunking configuration (Sprint 4). Chunks are sized for downstream
+ * embeddings; consecutive chunks overlap so context is not lost at boundaries.
+ *
+ * @see Docs/03-architecture.md (Chunking -> Embeddings)
+ */
+export const CHUNK_SIZE = 1000; // characters
+export const CHUNK_OVERLAP = 200; // characters
+
+/**
+ * Metadata persisted alongside each chunk's content. Stored in `chunks.metadata`
+ * (JSONB) so retrieval can cite the exact source location.
+ */
+export const ChunkMetadataSchema = z.object({
+  document_id: z.string().uuid(),
+  page_number: z.number().int().positive(),
+  chunk_index: z.number().int().nonnegative(),
+  start_offset: z.number().int().nonnegative(),
+  end_offset: z.number().int().nonnegative(),
+});
+export type ChunkMetadata = z.infer<typeof ChunkMetadataSchema>;
 
 /**
  * `POST /api/chat` request body.
