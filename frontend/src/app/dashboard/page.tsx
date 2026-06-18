@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { LogoutButton } from '@/components/auth/logout-button';
 import { UploadForm } from '@/components/documents/upload-form';
+import { SearchSection } from '@/components/search/search-section';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
 
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
       <UploadForm />
+      <SearchSection />
     </main>
   );
 }

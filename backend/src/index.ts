@@ -119,3 +119,36 @@ export const ChatRequestSchema = z.object({
   documentIds: z.array(z.string().uuid()).min(1, 'at least one documentId is required'),
 });
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
+
+/**
+ * `POST /api/search` request body (Sprint 6A).
+ */
+export const SearchRequestSchema = z.object({
+  query: z.string().min(1, 'query must not be empty'),
+  documentIds: z.array(z.string().uuid()).optional(),
+  limit: z.number().int().positive().max(50).optional().default(10),
+});
+export type SearchRequest = z.infer<typeof SearchRequestSchema>;
+
+/**
+ * A single chunk result from semantic similarity search.
+ */
+export const SearchResultSchema = z.object({
+  chunkId: z.string().uuid(),
+  documentId: z.string().uuid(),
+  content: z.string(),
+  metadata: z.record(z.string(), z.unknown()),
+  similarity: z.number(),
+  chunkIndex: z.number().int().nonnegative(),
+  pageNumber: z.number().int().positive(),
+});
+export type SearchResult = z.infer<typeof SearchResultSchema>;
+
+/**
+ * `POST /api/search` response body.
+ */
+export const SearchResponseSchema = z.object({
+  results: z.array(SearchResultSchema),
+  query: z.string(),
+});
+export type SearchResponse = z.infer<typeof SearchResponseSchema>;
