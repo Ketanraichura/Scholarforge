@@ -1,150 +1,69 @@
-# Sprint 6: Retrieval
+# Sprint 6: Retrieval — Complete
 
-## 6A: Retrieval Backend
+## 6A: Retrieval Backend ✅
 
-### Goal
+### What Was Built
 
-Enable semantic search backend. Query → embed → `match_chunks` RPC → return top K results.
+- Migration `0006_retrieval.sql` — `match_chunks` RPC function with `p_document_ids uuid[]`
+- `SearchRequest`, `SearchResult`, `SearchResponse` Zod schemas in shared
+- Retrieval orchestrator (`retrieve()`) with `RetrievalPorts` DI pattern
+- Supabase retrieval ports (embed query + call RPC)
+- 10 unit tests
 
-### Scope
+### Files Created
 
-- Migration: `match_chunks` RPC function
-- Shared schemas: SearchRequest/SearchResult/SearchResponse
-- Retrieval module in workers (orchestrator + Supabase ports)
-- Unit tests
+| File                                           | Purpose                         |
+| ---------------------------------------------- | ------------------------------- |
+| `supabase/migrations/0006_retrieval.sql`       | match_chunks RPC function       |
+| `workers/src/retrieval/retriever.ts`           | Retrieval orchestrator          |
+| `workers/src/retrieval/supabase-ports.ts`      | Supabase-backed retrieval ports |
+| `workers/src/retrieval/index.ts`               | Barrel export                   |
+| `workers/src/retrieval/retriever.test.ts`      | 7 tests                         |
+| `workers/src/retrieval/supabase-ports.test.ts` | 3 tests                         |
 
-### Out of Scope
+### Files Modified
 
-- Frontend UI (Sprint 6B)
-- Similarity threshold filtering — return top K, inspect quality first
-- Caching query embeddings
-- Chat/conversation (Sprint 7)
-
----
-
-## Task Breakdown
-
-### Phase 1: Database
-
-**Task 1.1** — Create migration `0006_retrieval.sql`
-
-- `match_chunks(query_embedding vector(1024), match_count int, p_document_ids uuid[])` RPC
-- `p_document_ids` is nullable — `NULL` = cross-document search
-- Returns `table(id, document_id, content, metadata, chunk_index, page_number, similarity)`
-- Uses `<=>` cosine distance, orders ascending (most similar first)
-
-### Phase 2: Shared Schemas
-
-**Task 2.1** — Add search schemas to `backend/src/index.ts`
-
-- `SearchRequestSchema` — `{ query: string, documentIds?: string[], limit?: number }`
-- `SearchResultSchema` — `{ chunkId, documentId, content, metadata, similarity, chunkIndex, pageNumber }`
-- `SearchResponseSchema` — `{ results: SearchResult[], query: string }`
-
-### Phase 3: Retrieval Module (workers)
-
-**Task 3.1** — Create `workers/src/retrieval/retriever.ts`
-
-- `RetrievalPorts` interface: `embedQuery`, `matchChunks`
-- `retrieve()` orchestrator: embed query → call RPC → format results
-
-**Task 3.2** — Create `workers/src/retrieval/supabase-ports.ts`
-
-- `createRetrievalPorts(supabase, provider, config)`
-- `embedQuery`: single-text embed via provider
-- `matchChunks`: Supabase RPC call
-
-**Task 3.3** — Create `workers/src/retrieval/index.ts` barrel export
-
-### Phase 4: Testing
-
-**Task 4.1** — `workers/src/retrieval/retriever.test.ts` (7 tests)
-**Task 4.2** — `workers/src/retrieval/supabase-ports.test.ts` (3 tests)
+| File                   | Change                                                    |
+| ---------------------- | --------------------------------------------------------- |
+| `backend/src/index.ts` | Added SearchRequest, SearchResult, SearchResponse schemas |
 
 ---
 
-## Database Changes
+## 6B: Search UI ✅
 
-| Change        | File                                     |
-| ------------- | ---------------------------------------- |
-| New migration | `supabase/migrations/0006_retrieval.sql` |
+### What Was Built
 
-```sql
-create or replace function public.match_chunks(
-  query_embedding vector(1024),
-  match_count int default 10,
-  p_document_ids uuid[] default null
-)
-returns table (
-  id uuid,
-  document_id uuid,
-  content text,
-  metadata jsonb,
-  chunk_index int,
-  page_number int,
-  similarity float
-)
-language plpgsql
-as $$
-begin
-  return query
-  select
-    c.id, c.document_id, c.content, c.metadata,
-    c.chunk_index, c.page_number,
-    1 - (c.embedding <=> query_embedding) as similarity
-  from public.chunks c
-  where c.embedding is not null
-    and (p_document_ids is null or c.document_id = any(p_document_ids))
-  order by c.embedding <=> query_embedding
-  limit match_count;
-end;
-$$;
-```
+- `POST /api/search` route handler (embeds query via Gemini, calls match_chunks RPC)
+- `SearchBar` component (input + submit, useMutation)
+- `SearchResults` component (chunk content, page number, similarity score)
+- `SearchSection` wrapper (loading, empty, error, results states)
+- Dashboard integration (search below upload form)
+- 6 component tests
+
+### Files Created
+
+| File                                                     | Purpose                   |
+| -------------------------------------------------------- | ------------------------- |
+| `frontend/src/app/api/search/route.ts`                   | POST /api/search endpoint |
+| `frontend/src/components/search/search-bar.tsx`          | Search input component    |
+| `frontend/src/components/search/search-results.tsx`      | Results display           |
+| `frontend/src/components/search/search-section.tsx`      | Stateful wrapper          |
+| `frontend/src/components/search/search-bar.test.tsx`     | 3 tests                   |
+| `frontend/src/components/search/search-results.test.tsx` | 3 tests                   |
+
+### Files Modified
+
+| File                                  | Change              |
+| ------------------------------------- | ------------------- |
+| `frontend/src/app/dashboard/page.tsx` | Added SearchSection |
 
 ---
 
-## API Changes
+## Verification Results
 
-None in 6A. API route added in 6B.
-
----
-
-## Files to Create/Modify
-
-| Action | File                                           |
-| ------ | ---------------------------------------------- |
-| Create | `supabase/migrations/0006_retrieval.sql`       |
-| Edit   | `backend/src/index.ts` — add Search\* schemas  |
-| Create | `workers/src/retrieval/retriever.ts`           |
-| Create | `workers/src/retrieval/supabase-ports.ts`      |
-| Create | `workers/src/retrieval/index.ts`               |
-| Create | `workers/src/retrieval/retriever.test.ts`      |
-| Create | `workers/src/retrieval/supabase-ports.test.ts` |
-
-**Total:** 7 files (5 new, 2 edits)
-
----
-
-## Test Plan
-
-| File                     | Tests | Strategy                                |
-| ------------------------ | ----- | --------------------------------------- |
-| `retriever.test.ts`      | 7     | Mock ports, verify embed → RPC → format |
-| `supabase-ports.test.ts` | 3     | Mock provider + mock Supabase           |
-
----
-
-## Execution Order
-
-1. Migration + shared schemas
-2. Retrieval module + barrel export
-3. Tests
-4. `npm run lint && npm run typecheck && npm run test && npm run build`
-
----
-
-# Sprint 6B: Search UI (Not Started)
-
-- `POST /api/search` route
-- Search bar + results components
-- Dashboard integration
+| Check     | Result      |
+| --------- | ----------- |
+| Lint      | clean       |
+| Typecheck | clean       |
+| Tests     | 110 passing |
+| Build     | clean       |

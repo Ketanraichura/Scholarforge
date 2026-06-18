@@ -16,6 +16,8 @@
   "dependencies": {
     "@scholarforge/shared": "*",
     "@supabase/supabase-js": "^2.108.2",
+    "bullmq": "^5.79.0",
+    "ioredis": "^5.11.1",
     "pdf-parse": "^2.4.5"
   },
   "devDependencies": {

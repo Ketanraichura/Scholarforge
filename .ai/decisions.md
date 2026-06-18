@@ -86,8 +86,32 @@
 **Why:** 1536 was a placeholder. Real providers return 1024 (DeepSeek) or configurable (Gemini).
 **Note:** Destructive migration — drops and recreates the embedding column.
 
-### 14. match_chunks RPC Function
+### 14. match_chunks RPC Function (Sprint 6A)
 
-**Decision:** Create `match_chunks(query_embedding, match_count, p_document_id)` for similarity search.
+**Decision:** Create `match_chunks(query_embedding, match_count, p_document_ids)` for similarity search.
 **Why:** PostgREST can't do cosine distance sorting efficiently. RPC function pushes computation to Postgres.
-**Status:** Created ad-hoc during Sprint 5 audit. Not yet in migration files.
+**Status:** Added to migration `0006_retrieval.sql`. Accepts `uuid[]` for scoped/cross-document search.
+
+### 15. Stateless Chat (Sprint 7)
+
+**Decision:** Chat is stateless — no DB writes, no chat persistence, no conversation memory.
+**Why:** Single-turn Q&A MVP. Users ask a question, get an answer with citations. No multi-turn needed yet.
+**Trade-off:** No chat history, but simpler implementation and no DB overhead.
+
+### 16. Citation Extraction via Marker Matching (Sprint 7)
+
+**Decision:** Build prompt context as `[1] chunk1 [2] chunk2 ...`, instruct Gemini to cite using those markers, parse only valid markers.
+**Why:** Avoids trying to infer citations from arbitrary LLM output. Deterministic mapping from markers to retrieved chunks.
+**Evidence:** Prompt numbers chunks explicitly. `extractCitations()` scans for `[1]`, `[2]`, etc. and maps directly to chunk index.
+
+### 17. LLM Provider Abstraction (Sprint 7)
+
+**Decision:** `LLMProvider` interface with `generate(messages, config)` method, parallel to `EmbeddingProvider`.
+**Why:** Same pattern as embedding providers. Enables swapping LLM backends (Gemini, DeepSeek, OpenAI) without changing chat logic.
+**Evidence:** `createGeminiLLMProvider()` uses same auth pattern (`x-goog-api-key`) as embedding provider.
+
+### 18. API Routes Self-Contained (Sprint 6B, 7)
+
+**Decision:** Search and chat API routes inline their logic (embedding, LLM calls) rather than importing from workers package.
+**Why:** Frontend doesn't depend on workers package. Routes are self-contained serverless functions.
+**Trade-off:** Some code duplication (embedQuery in search route), but no cross-package dependency.
