@@ -2,12 +2,13 @@ import { DocumentStatusSchema, type DocumentStatus } from '@scholarforge/shared'
 
 /**
  * Worker job kinds. Concrete handlers are registered by the worker entrypoint:
- * `process-document` runs PDF text extraction (Sprint 3) and `chunk-document`
- * splits extracted text into chunks (Sprint 4).
+ * `process-document` runs PDF text extraction (Sprint 3), `chunk-document`
+ * splits extracted text into chunks (Sprint 4), and `embed-document` generates
+ * embeddings for chunks (Sprint 5).
  *
  * @see Docs/03-architecture.md (Queue -> Workers)
  */
-export type JobKind = 'process-document' | 'chunk-document';
+export type JobKind = 'process-document' | 'chunk-document' | 'embed-document';
 
 export interface Job<TPayload> {
   readonly kind: JobKind;
@@ -19,6 +20,10 @@ export interface ProcessDocumentPayload {
 }
 
 export interface ChunkDocumentPayload {
+  readonly documentId: string;
+}
+
+export interface EmbedDocumentPayload {
   readonly documentId: string;
 }
 
