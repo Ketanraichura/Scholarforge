@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { LogoutButton } from '@/components/auth/logout-button';
 import { UploadForm } from '@/components/documents/upload-form';
 import { SearchSection } from '@/components/search/search-section';
+import { ChatSection } from '@/components/chat/chat-section';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server';
 
@@ -19,6 +20,14 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/login');
   }
+
+  const { data: documents } = await supabase
+    .from('documents')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('status', 'ready');
+
+  const documentIds = (documents ?? []).map((doc) => doc.id);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 p-8">
@@ -39,6 +48,7 @@ export default async function DashboardPage() {
       </Card>
       <UploadForm />
       <SearchSection />
+      {documentIds.length > 0 ? <ChatSection documentIds={documentIds} /> : null}
     </main>
   );
 }

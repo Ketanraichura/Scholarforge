@@ -152,3 +152,24 @@ export const SearchResponseSchema = z.object({
   query: z.string(),
 });
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;
+
+/**
+ * A citation linking an answer marker to a source chunk (Sprint 7).
+ */
+export const CitationSchema = z.object({
+  marker: z.number().int().positive(),
+  chunkId: z.string().uuid(),
+  documentId: z.string().uuid(),
+  pageNumber: z.number().int().positive(),
+  content: z.string(),
+});
+export type Citation = z.infer<typeof CitationSchema>;
+
+/**
+ * `POST /api/chat` response body (Sprint 7).
+ */
+export const ChatResponseSchema = z.object({
+  answer: z.string(),
+  citations: z.array(CitationSchema),
+});
+export type ChatResponse = z.infer<typeof ChatResponseSchema>;

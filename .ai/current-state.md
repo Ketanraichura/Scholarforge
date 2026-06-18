@@ -1,6 +1,6 @@
 # ScholarForge AI — Current State
 
-**Date:** Sprint 6B Complete
+**Date:** Sprint 7 Complete
 **Version:** 0.1.0
 
 ## Sprint Status
@@ -15,7 +15,7 @@
 | 5      | Embeddings Pipeline | ✅ Complete |
 | 6A     | Retrieval Backend   | ✅ Complete |
 | 6B     | Search UI           | ✅ Complete |
-| 7      | Chat                | Not started |
+| 7      | Answer Generation   | ✅ Complete |
 | 8      | Knowledge Graph     | Not started |
 
 ## What Exists
@@ -23,10 +23,11 @@
 ### Frontend
 
 - Landing page, login, signup pages
-- Protected dashboard with upload form + search
+- Protected dashboard with upload form + search + chat
 - Supabase auth (email/password) with middleware
 - PDF upload with client-side validation → Supabase Storage
 - Semantic search UI (search bar + results with similarity scores)
+- Chat UI (question input, answer with inline citations)
 - TanStack Query integration
 - Sentry monitoring (inert without DSN)
 - shadcn-style UI components
@@ -38,8 +39,10 @@
 - Embedding pipeline with provider abstraction
 - Gemini provider (active, verified end-to-end)
 - DeepSeek provider (implemented, API returns 404 — not verified)
+- Gemini LLM provider (text generation via generateContent)
 - Configurable dimensions via env
 - Retrieval module (query embedding + match_chunks RPC)
+- Chat module (retrieve → prompt → generate → citations)
 
 ### Database
 
@@ -53,6 +56,7 @@
 
 - Zod schemas for DocumentStatus, ChunkMetadata, UploadResponse, ChatRequest
 - Zod schemas for SearchRequest, SearchResult, SearchResponse
+- Zod schemas for Citation, ChatResponse
 - Upload validation logic (20MB limit, PDF only)
 
 ## What's Working End-to-End
@@ -60,6 +64,7 @@
 ```
 Upload PDF → Extract text → Chunk → Embed (Gemini 1024d) → Store vector
 Query → Embed query → match_chunks RPC → Return ranked results
+Question → Retrieve chunks → Gemini generateContent → Answer with citations
 ```
 
 Verified with real execution:
@@ -75,7 +80,6 @@ Verified with real execution:
 
 - **Queue transport** — `DocumentQueue` is a no-op log. Real queue (BullMQ/Redis) not implemented.
 - **JobRegistry** — in-memory handler map. Not connected to a real queue.
-- **Chat** — not started (Sprint 7)
 - **Knowledge Graph** — not started (Sprint 8)
 - **Worker env validation** — no Zod schema (manual parsing in `env.ts`)
 
@@ -84,9 +88,9 @@ Verified with real execution:
 | Package          | Tests   | Pass   |
 | ---------------- | ------- | ------ |
 | backend (shared) | 18      | ✅     |
-| frontend         | 26      | ✅     |
-| workers          | 66      | ✅     |
-| **Total**        | **110** | **✅** |
+| frontend         | 32      | ✅     |
+| workers          | 81      | ✅     |
+| **Total**        | **131** | **✅** |
 
 E2E tests (Playwright) exist but not run in CI audit.
 

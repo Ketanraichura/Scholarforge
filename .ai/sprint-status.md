@@ -77,15 +77,19 @@
 - Dashboard integration (search below upload form)
 - 6 new component tests
 
+### Sprint 7: Answer Generation ✅
+
+- `LLMProvider` abstraction for text generation
+- Gemini LLM provider (`gemini-2.0-flash`, `generateContent` API)
+- Citation extractor (parse `[1][2]` markers → map to retrieved chunks)
+- Stateless chat orchestrator: retrieve → prompt → generate → cite
+- `POST /api/chat` route handler
+- Chat UI (input, answer with inline citations, source cards)
+- Dashboard integration (chat below search, shown when documents exist)
+- `Citation`, `ChatResponse` Zod schemas in shared
+- 21 new tests (LLM provider, citations, answer generator, chat components)
+
 ## Upcoming Sprints
-
-### Sprint 7: Chat (Not Started)
-
-- Chat session management
-- LLM integration (DeepSeek V4 Pro)
-- RAG: retrieve chunks → inject into prompt → generate response
-- Citation extraction and storage
-- Streaming responses
 
 ### Sprint 8: Deployment (Not Started)
 
