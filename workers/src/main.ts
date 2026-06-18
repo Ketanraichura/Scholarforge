@@ -7,6 +7,7 @@ import {
 import { processDocument, type ProcessorPorts } from './extraction/index.js';
 import { chunkDocumentJob, type ChunkingPorts } from './chunking/index.js';
 import { embedDocumentJob, type EmbeddingPorts } from './embedding/index.js';
+import { createEmbeddingRuntime } from './env.js';
 import type { EmbeddingProvider, EmbeddingConfig } from './providers/types.js';
 
 /**
@@ -51,7 +52,10 @@ export function createRegistry(ports: {
 }
 
 function main(): void {
-  console.log('[workers] document-processing worker ready; awaiting queue integration');
+  const { embeddingProvider } = createEmbeddingRuntime();
+  console.log(
+    `[workers] document-processing worker ready; awaiting queue integration (embedding provider: ${embeddingProvider.name})`,
+  );
 }
 
 main();

@@ -30,12 +30,12 @@ describe('createGeminiProvider', () => {
       {
         ok: true,
         status: 200,
-        body: { embeddings: [{ values: [0.1, 0.2, 0.3] }] },
+        body: { embedding: { values: [0.1, 0.2, 0.3] } },
       },
       {
         ok: true,
         status: 200,
-        body: { embeddings: [{ values: [0.4, 0.5, 0.6] }] },
+        body: { embedding: { values: [0.4, 0.5, 0.6] } },
       },
     ]);
 
@@ -47,7 +47,7 @@ describe('createGeminiProvider', () => {
       [0.4, 0.5, 0.6],
     ]);
     expect(result.dimensions).toBe(3);
-    expect(result.model).toBe('text-embedding-004');
+    expect(result.model).toBe('gemini-embedding-001');
   });
 
   it('batches texts and calls API for each text', async () => {
@@ -55,17 +55,17 @@ describe('createGeminiProvider', () => {
       {
         ok: true,
         status: 200,
-        body: { embeddings: [{ values: [0.1] }] },
+        body: { embedding: { values: [0.1] } },
       },
       {
         ok: true,
         status: 200,
-        body: { embeddings: [{ values: [0.2] }] },
+        body: { embedding: { values: [0.2] } },
       },
       {
         ok: true,
         status: 200,
-        body: { embeddings: [{ values: [0.3] }] },
+        body: { embedding: { values: [0.3] } },
       },
     ]);
     globalThis.fetch = fetchMock;

@@ -1,20 +1,21 @@
 import type { EmbeddingConfig, EmbeddingProvider, EmbeddingResult } from './types.js';
 
-const DEFAULT_MODEL = 'text-embedding-004';
+const DEFAULT_MODEL = 'gemini-embedding-001';
 const DEFAULT_BATCH_SIZE = 100;
 
 interface GeminiEmbeddingResponse {
-  embeddings: Array<{ values: number[] }>;
+  embedding: { values: number[] };
   model: string;
 }
 
 /**
- * Google Gemini embedding provider fallback.
+ * Google Gemini embedding provider.
  *
- * Default dimensions: 768 (text-embedding-004).
- * Batch size: configurable, defaults to 100 (Gemini limit).
+ * Default model: gemini-embedding-001 (768d default, flexible 128-3072).
+ * Batch size: configurable, defaults to 100 (Gemini per-request limit).
+ * Auth: x-goog-api-key header.
  *
- * @see https://ai.google.dev/api/rest/v1beta/models/embedContent
+ * @see https://ai.google.dev/api/embeddings
  */
 export function createGeminiProvider(): EmbeddingProvider {
   return {
@@ -29,14 +30,17 @@ export function createGeminiProvider(): EmbeddingProvider {
         const batch = texts.slice(i, i + batchSize);
         const responses = await Promise.all(
           batch.map(async (text) => {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent?key=${config.apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent`;
             const response = await fetch(url, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': config.apiKey,
+              },
               body: JSON.stringify({
                 model: `models/${model}`,
                 content: { parts: [{ text }] },
-                taskType: 'RETRIEVAL_DOCUMENT',
+                outputDimensionality: config.dimensions,
               }),
             });
 
@@ -50,7 +54,7 @@ export function createGeminiProvider(): EmbeddingProvider {
         );
 
         for (const result of responses) {
-          const embedding = result.embeddings[0];
+          const embedding = result.embedding;
           if (embedding) {
             allVectors.push(embedding.values);
           }
